@@ -1,0 +1,83 @@
+This section provides links to online resources, books, and development
+environments for getting started with Clojure.
+
+*** Online Clojure Guides
+:PROPERTIES:
+:CUSTOM_ID: online-clojure-guides
+:END:
+- [[http://yogthos.github.io/ClojureDistilled.html][Clojure
+  Distilled]] - introduction to core Clojure concepts
+- [[http://java.ociweb.com/mark/clojure/article.html][Clojure -
+  Functional Programming for the JVM]] - a detailed Clojure primer aimed
+  at Java developers
+- [[http://www.braveclojure.com/][Clojure for the Brave and True]] - an
+  excellent and humorous introduction to the language
+- [[http://clojure-doc.org/][Clojure Documentation]] - a collection of
+  Clojure guides and tutorials
+- [[http://www.4clojure.com/][4Clojure]] - a site for practicing Clojure
+  by solving interactive problems
+- [[https://github.com/shaunlebron/ClojureScript-Syntax-in-15-minutes][ClojureScript
+  in 15 minutes]] - concise guide to ClojureScript
+
+*** Clojure Reference
+:PROPERTIES:
+:CUSTOM_ID: clojure-reference
+:END:
+- [[http://conj.io/][Grimoire API reference]]
+- [[http://clojure.org/cheatsheet][Clojure cheatsheet]]
+- [[https://github.com/bbatsov/clojure-style-guide][Clojure style
+  guide]]
+- [[https://kimh.github.io/clojure-by-example/][Clojure by Example]]
+
+*** Clojure Books
+:PROPERTIES:
+:CUSTOM_ID: clojure-books
+:END:
+- [[http://shop.oreilly.com/product/0636920034292.do][Living Clojure]]
+- [[http://clojure-cookbook.com/][Clojure Cookbook]]
+- [[http://www.clojurebook.com/][Clojure Programming]]
+- [[http://www.amazon.com/Clojure-Action-Amit-Rathore/dp/1935182595/][Clojure
+  in Action]]
+- [[http://www.amazon.com/The-Joy-Clojure-Thinking-Way/dp/1935182641/ref=pd_bxgy_b_img_y][The
+  Joy of Clojure: Thinking the Clojure Way]]
+- [[http://www.apress.com/9781430272311][Practical Clojure]]
+- [[https://pragprog.com/book/dswdcloj2/web-development-with-clojure-second-edition][Web
+  Development with Clojure]]
+- [[https://www.packtpub.com/application-development/clojure-web-development-essentials][Clojure
+  Web Development Essentials]]
+
+*** IDE Support
+:PROPERTIES:
+:CUSTOM_ID: ide-support
+:END:
+There is a number of IDEs to choose from for Clojure development.
+
+- [[http://clojure-doc.org/articles/tutorials/emacs.html][Emacs]] -
+  currently the most popular IDE for Clojure.
+
+- [[http://www.jetbrains.com/idea/download/][IntelliJ]] - IntelliJ
+  provides an excellent Clojure development environment via the
+  [[http://cursiveclojure.com/][Cursive plugin]].
+
+- [[https://code.visualstudio.com/][Visual Studio Code]] - Extensible
+  editor featuring the
+  [[https://github.com/BetterThanTomorrow/calva][Calva]] plugin
+  available from the editor Plugin Marketplace.
+
+- [[https://github.com/liquidz/vim-iced][Vim Iced]] - Full-featured
+  Clojure editing for Vim.
+
+- [[https://github.com/tonsky/Clojure-Sublimed][Clojure Sublimed]] - a
+  Clojure support package for [[https://www.sublimetext.com/][Sublime
+  Text]].
+
+- [[https://clojure-lsp.io/][Clojure LSP]] - Clojure LSP server. Allows
+  you to add IDE-like capabilities (finding references, autocompletion)
+  to many text editors. Use it in combination with an editor-specific
+  client, like the ones listed below. Note that Calva for Visual Studio
+  Code already includes LSP.
+
+- [[https://emacs-lsp.github.io/lsp-mode/tutorials/clojure-guide/][LSP
+  mode for Emacs]]
+
+- [[https://github.com/sublimelsp/LSP][LSP client for Sublime Text]]

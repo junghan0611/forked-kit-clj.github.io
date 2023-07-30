@@ -1,0 +1,913 @@
+** Guestbook Application
+:PROPERTIES:
+:CUSTOM_ID: guestbook-application
+:END:
+This tutorial will guide you through building a simple guestbook
+application using Kit. The guestbook allows users to leave a message and
+to view a list of messages left by others. The application will
+demonstrate the basics of HTML templating, database access, and project
+architecture.
+
+If you don't have a preferred Clojure editor already, then it's
+recommended that you use [[https://calva.io/getting-started/][Calva]] to
+follow along with this tutorial.
+
+*** Installing JDK
+:PROPERTIES:
+:CUSTOM_ID: installing-jdk
+:END:
+Clojure runs on the JVM and requires a copy of JDK to be installed. If
+you don't have JDK already on your system then OpenJDK is recommended
+and can be downloaded [[http://www.azul.com/downloads/zulu/][here]].
+Note that Kit requires JDK 11 or greater to work with the default
+settings. Alternatively, follow the instructions for installing packages
+on your system.
+
+*** Installing a Build Tool
+:PROPERTIES:
+:CUSTOM_ID: installing-a-build-tool
+:END:
+For building and running a project, Kit supports
+[[https://clojure.org/guides/deps_and_cli][Clojure Deps and CLI]]. Note
+that Kit requires tools.build version =1.10.3.933= or later.
+
+To install Clojure CLI, follow the steps below depending on your
+operating system.
+
+MacOS
+
+#+begin_example
+brew install clojure/tools/clojure
+#+end_example
+
+Linux
+
+#+begin_example
+curl -O https://download.clojure.org/install/linux-install-1.10.3.986.sh
+chmod +x linux-install-1.10.3.986.sh
+sudo ./linux-install-1.10.3.986.sh
+#+end_example
+
+For both macOS and Linux, you will need
+[[https://github.com/seancorfield/clj-new][=clj-new=]] installed as
+follows:
+
+#+begin_example
+clojure -Ttools install com.github.seancorfield/clj-new '{:git/tag "v1.2.381"}' :as new
+#+end_example
+
+For information on customization options, for example on how to change
+your install location, see
+[[https://clojure.org/guides/getting_started#_clojure_installer_and_cli_tools][the
+official docs here]].
+
+*** Creating a new application
+:PROPERTIES:
+:CUSTOM_ID: creating-a-new-application
+:END:
+Once you have the Clojure CLI installed, you can run the following
+commands in your terminal to initialize your application:
+
+#+begin_example
+clojure -Tnew create :template io.github.kit-clj :name kit/guestbook
+cd guestbook
+#+end_example
+
+The above will create a new project, named kit/guestbook, based on the
+kit-clj template.
+
+*** Anatomy of a Kit application
+:PROPERTIES:
+:CUSTOM_ID: anatomy-of-a-kit-application
+:END:
+The newly created application has the following structure:
+
+#+begin_example
+├── Dockerfile
+├── README.md
+├── build.clj
+├── deps.edn
+├── env
+│   ├── dev
+│   │   ├── clj
+│   │   │   ├── user.clj
+│   │   │   └── kit
+│   │   │       └── guestbook
+│   │   │           ├── dev_middleware.clj
+│   │   │           └── env.clj
+│   │   └── resources
+│   │       └── logback.xml
+│   └── prod
+│       ├── clj
+│       │   └── kit
+│       │       └── guestbook
+│       │           └── env.clj
+│       └── resources
+│           └── logback.xml
+├── kit.edn
+├── kit.git-config.edn
+├── project.clj
+├── resources
+│   └── system.edn
+├── src
+│   └── clj
+│       └── kit
+│           └── guestbook
+│               ├── config.clj
+│               ├── core.clj
+│               └── web
+│                   ├── controllers
+│                   │   └── health.clj
+│                   ├── handler.clj
+│                   ├── middleware
+│                   │   ├── core.clj
+│                   │   ├── exception.clj
+│                   │   └── formats.clj
+│                   └── routes
+│                       ├── api.clj
+│                       └── utils.clj
+└── test
+    └── clj
+        └── kit
+            └── guestbook
+                └── test_utils.clj
+#+end_example
+
+Let's take a look at what the files in the root folder of the
+application do:
+
+- =deps.edn= - used to manage the project configuration and dependencies
+  by deps
+- =build.clj= - used to manage the build process by Clojure CLI tools
+- =Dockerfile= - used to facilitate Docker container deployments
+- =README.md= - where documentation for the application is
+  conventionally put
+- =resources/system.edn= - used for system configuration
+- =.gitignore= - a list of assets, such as build-generated files, to
+  exclude from Git
+
+*** The Source Directory
+:PROPERTIES:
+:CUSTOM_ID: the-source-directory
+:END:
+All our code lives under the =src/clj= folder. Since our application is
+called kit/guestbook, this is the root namespace for the project. Let's
+take a look at all the namespaces that have been created for us.
+
+**** guestbook
+:PROPERTIES:
+:CUSTOM_ID: guestbook
+:END:
+- =config.clj= - this is the place where your =system.edn= is read in to
+  create an integrant configuration map
+- =core.clj= - this is the entry point for the application that contains
+  the logic for starting and stopping the server
+
+**** guestbook.web
+:PROPERTIES:
+:CUSTOM_ID: guestbook.web
+:END:
+The =web= namespace is used to define the edges of your application that
+deal with server communication, such as receiving HTTP requests and
+returning responses.
+
+- =handler.clj= - defines the entry points for routing and request
+  handling.
+
+**** guestbook.web.controllers
+:PROPERTIES:
+:CUSTOM_ID: guestbook.web.controllers
+:END:
+The =controllers= namespace is where the controllers are located. By
+default, a healthcheck controller is created for you. When you add more
+controllers you should create namespaces for them here.
+
+- =healthcheck.clj= - default controller that returns basic statistics
+  about your server
+
+**** guestbook.web.middleware
+:PROPERTIES:
+:CUSTOM_ID: guestbook.web.middleware
+:END:
+The =middleware= namespace consists of functions that implement
+cross-cutting functionality such as session management, coercion, etc.
+These functions can be wrapped around groups of routes to provide common
+functionality.
+
+- =core.clj= - an aggregate of default middlewares and
+  environment-specific middleware
+- =exception.clj= - logic for classifying exceptions within controllers
+  and returning appropriate HTTP responses
+- =formats.clj= - handles coercion of requests data to Clojure data
+  structures, and response data back to strings
+
+**** guestbook.web.routes
+:PROPERTIES:
+:CUSTOM_ID: guestbook.web.routes
+:END:
+The =routes= namespace is where the HTTP routes are defined. By default
+=/api= routes are created for you. When you add more routes you should
+create namespaces for them here.
+
+- =api.clj= - a namespace that routes (default = =/api=) with Swagger UI
+- =utils.clj= - general purpose helper functions for getting data from
+  requests
+
+*** The Env Directory
+:PROPERTIES:
+:CUSTOM_ID: the-env-directory
+:END:
+Environment-specific code and resources are located under the =env/dev=,
+=env/test=, and the =env/prod= paths. The =dev= configuration will be
+used during development and testing, =test= during testing, while the
+=prod= configuration will be used when the application is packaged for
+production.
+
+**** The Dev Directory
+:PROPERTIES:
+:CUSTOM_ID: the-dev-directory
+:END:
+Any source code that's meant to be used during development time is
+placed in the =dev/clj=. The following namespaces will be generated by
+default when the project is created:
+
+- =user.clj= - a utility namespace for any code you wish to run during
+  REPL development. You start and stop your server from here during
+  development.
+- =guestbook/env.clj= - contains the development configuration defaults
+- =guestbook/dev_middleware.clj= - contains middleware used for
+  development that should not be compiled in production
+
+Resources that are used during development are placed in
+=dev/resources=. By default this folder will contain logback
+configuration tuned for development:
+
+- =logback.xml= file used to configure the development logging profile
+
+Similarly, testing configuration is placed in the =test/resources=:
+
+- =logback.xml= file used to configure the test logging profile
+
+**** The Prod Directory
+:PROPERTIES:
+:CUSTOM_ID: the-prod-directory
+:END:
+This directory is a counterpart of the =dev= directory, and contains
+versions of namespaces and resources that will be used when the
+application is built for production. The =prod/clj= folder will contain
+the following namespace when the project is created:
+
+- =guestbook/env.clj= namespace with the production configuration
+
+Meanwhile, =prod/resources= will contain logback configuration tuned for
+production use:
+
+- =logback.xml= - default production logging configuration
+
+*** The Test Directory
+:PROPERTIES:
+:CUSTOM_ID: the-test-directory
+:END:
+Here is where we put tests for our application. Some test utilities have
+been provided.
+
+*** The Resources Directory
+:PROPERTIES:
+:CUSTOM_ID: the-resources-directory
+:END:
+This is where we put all the resources that will be packaged with our
+application. Anything in the =public= directory under =resources= will
+be served to the clients by the server.
+
+*** Starting Our Server
+:PROPERTIES:
+:CUSTOM_ID: starting-our-server
+:END:
+Your REPL is your best friend in Clojure. Let's start our local
+development REPL by running
+
+#+begin_example
+clj -M:dev
+#+end_example
+
+You can alternatively use =clj -M:dev:cider= if you intend to connect to
+the REPL from Emacs and
+[[https://docs.cider.mx/cider/index.html][CIDER]] (this also works with
+VS Code and [[https://calva.io][Calva]]). Or do =clj -M:dev:nrepl= if
+you want to start [[https://github.com/nrepl/nrepl][nREPL]] but don't
+need the CIDER middleware. See the
+[[https://github.com/kit-clj/demo-guestbook][Guestbook example]] README
+for more info on connecting the REPL with a Clojure editor.
+
+Once you are in the REPL, you can start the system by running a command
+provided in =env/dev/user.clj=
+
+#+begin_src clojure
+(go) ;; To start the system
+
+(halt) ;; To stop the system
+
+(reset) ;; To refresh the system after making code changes
+#+end_src
+
+To confirm that your server is running, visit
+[[http://localhost:3000/api/health]].
+
+*** System
+:PROPERTIES:
+:CUSTOM_ID: system
+:END:
+System resources such as HTTP server ports, database connections are
+defined in the =resources/system.edn= file. For example, this key
+defines HTTP server configuration such as the host, port, and HTTP
+handler:
+
+#+begin_src clojure
+:server/http
+ {:port #long #or [#env PORT 3000]
+  :host #or [#env HTTP_HOST "0.0.0.0"]
+  :handler #ig/ref :handler/ring}
+#+end_src
+
+Now that we've looked at the structure of the default project, let's see
+how we can add some additional functionality via modules.
+
+*** Kit Modules
+:PROPERTIES:
+:CUSTOM_ID: kit-modules
+:END:
+Kit modules consist of templates that can be used to inject code and
+resources into a Kit project. The modules are defined in the =kit.edn=
+file. By default, the configuration will point to the official module
+repository:
+
+#+begin_src clojure
+:modules   {:root         "modules"
+            :repositories [{:url  "git@github.com:kit-clj/modules.git"
+                            :tag  "master"
+                            :name "kit-modules"}]}
+#+end_src
+
+Since our application needs to serve some HTML content, let's add the
+official HTML module. In your REPL, you can execute the following:
+
+#+begin_src clojure
+;; This will download the official Kit modules from git
+(kit/sync-modules)
+
+;; This will list the available modules
+(kit/list-modules)
+;; =>
+;; :kit/html - adds support for HTML templating using Selmer
+;; :kit/sql - adds support for SQL. Available profiles [ :postgres :sqlite ]. Default profile :sqlite
+;; :kit/cljs - adds support for cljs using shadow-cljs
+;; nil
+
+;; To be able to serve HTML pages, install the :html module
+(kit/install-module :kit/html)
+;; =>
+;; updating file: resources/system.edn
+;; injecting
+;; path: [:reitit.routes/pages]
+;; value: {:base-path "", :env #ig/ref :system/env}
+;; updating file: deps.edn
+;; injecting
+;; path: [:deps selmer/selmer]
+;; value: #:mvn{:version "1.12.44"}
+;; injecting
+;; path: [:deps ring/ring-defaults]
+;; value: #:mvn{:version "0.3.3"}
+;; injecting
+;; path: [:deps luminus/ring-ttl-session]
+;; value: #:mvn{:version "0.3.3"}
+;; updating file: src/clj/kit/guestbook/core.clj
+;; applying
+;; action: :append-requires
+;; value: [[kit.guestbook.web.routes.pages]]
+;; html installed successfully!
+;; restart required!
+;; nil
+#+end_src
+
+We can see from the output of the =kit/install-module= that we need to
+restart our REPL. Let's do that. Once we are up again, we can test if
+our module is installed correctly by starting up the server with =(go)=
+and navigating to [[http://localhost:3000][localhost:3000]].
+
+**** HTML templates
+:PROPERTIES:
+:CUSTOM_ID: html-templates
+:END:
+The module generated the following files under the =resources/html=
+directory:
+
+- =home.html= - home page
+- =error.html= - error page template
+
+This directory is reserved for HTML templates that represent the
+application pages.
+
+The module also generated the namespace =kit.guestbook.web.pages.layout=
+which helps you render HTML pages using
+[[https://github.com/yogthos/Selmer][Selmer templating engine]]
+
+**** Routing
+:PROPERTIES:
+:CUSTOM_ID: routing
+:END:
+The module also helped generate some routes for us under
+=kit.guestbook.web.routes.pages=. See [[/docs/routes.html][routing]]
+documentation for more details.
+
+**** Adding a database
+:PROPERTIES:
+:CUSTOM_ID: adding-a-database
+:END:
+Similarly to the way we installed the HTML module, we can add a SQL
+module with SQLite called =:kit/sql=. The default profile includes
+SQLite out of the box, but if we wanted to be explicit we could also
+write =(kit/install-module :kit/sql {:feature-flag :sqlite})=
+
+#+begin_src clojure
+(kit/install-module :kit/sql)
+;; updating file: resources/system.edn
+;; injecting
+;;  path: [:db.sql/connection]
+;;  value: #profile {:dev {:jdbc-url "jdbc:sqlite:_dev.db"}, :test {:jdbc-url "jdbc:sqlite:_test.db"}, :prod {:jdbc-url #env JDBC_URL}}
+;; injecting
+;;  path: [:db.sql/query-fn]
+;;  value: {:conn #ig/ref :db.sql/connection, :options {}, :filename "sql/queries.sql"}
+;; injecting
+;;  path: [:db.sql/migrations]
+;;  value: {:store :database, :db {:datasource #ig/ref :db.sql/connection}, :migrate-on-init? true}
+;; updating file: deps.edn
+;; injecting
+;;  path: [:deps io.github.kit-clj/kit-sql]
+;;  value: #:mvn{:version "0.1.0"}
+;; injecting
+;;  path: [:deps org.xerial/sqlite-jdbc]
+;;  value: #:mvn{:version "3.34.0"}
+;; updating file: src/clj/kit/guestbook/core.clj
+;; applying
+;;  action: :append-requires
+;;  value: [[kit.edge.db.sql]]
+;; sql installed successfully!
+;; restart required!
+#+end_src
+
+Restart again and create your first database migration.
+
+#+begin_src clojure
+(migratus.core/create
+  (:db.sql/migrations state/system)
+  "add-guestbook-table")
+#+end_src
+
+This will generate two files under your =resources/migrations=
+directory. They will look something like this, but with a different
+prefix:
+
+#+begin_example
+20211109173842-add-guestbook-table.up.sql
+20211109173842-add-guestbook-table.down.sql
+#+end_example
+
+Kit uses [[https://github.com/yogthos/migratus][Migratus]] for
+migrations. Migrations are managed using up and down SQL files. The
+files are conventionally versioned using the date and will be applied in
+order of their creation.
+
+Let's add some content to create our messages table under the
+=<date>-add-guestbook-table.up.sql= file
+
+#+begin_src sql
+CREATE TABLE guestbook
+(id INTEGER PRIMARY KEY AUTOINCREMENT,
+ name VARCHAR(30),
+ message VARCHAR(200),
+ timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+#+end_src
+
+The guestbook table will store all the fields describing the message,
+such as the name of the commenter, the content of the message, and a
+timestamp. Next, let's replace the contents of the
+=<date>-add-guestbook-table.down.sql= file accordingly:
+
+#+begin_src sql
+DROP TABLE IF EXISTS guestbook;
+#+end_src
+
+Migrations will be run automatically using the configuration found in
+=system.edn=:
+
+#+begin_src clojure
+:db.sql/migrations {:store :database,
+                     :db {:datasource #ig/ref :db.sql/connection},
+                     :migrate-on-init? true}
+#+end_src
+
+*** Accessing The Database
+:PROPERTIES:
+:CUSTOM_ID: accessing-the-database
+:END:
+The SQL queries are found in the =resources/sql= folder.
+
+- =queries.sql= - defines the SQL queries and their associated function
+  names
+
+Let's take a look at the =queries.sql= template file. Its contents
+should look as follows:
+
+#+begin_src sql
+-- :name create-user! :! :n
+-- :doc creates a new user record
+INSERT INTO users
+(id, first_name, last_name, email, pass)
+VALUES (:id, :first_name, :last_name, :email, :pass)
+
+-- :name update-user! :! :n
+-- :doc update an existing user record
+UPDATE users
+SET first_name = :first_name, last_name = :last_name, email = :email
+WHERE id = :id
+
+-- :name get-user :? :1
+-- :doc retrieve a user given the id.
+SELECT * FROM users
+WHERE id = :id
+#+end_src
+
+The file initially contains some placeholder queries to help remind you
+of basic SQL syntax. As we can see, each function is defined using the
+comment that starts with =-- :name= followed by the name of the
+function. The next comment provides the doc string for the function and
+finally we have the body that's plain SQL. For full documentation of
+this syntax you can view the [[https://www.hugsql.org/][HugSQL
+documentation]]. The parameters are denoted using =:= notation. Let's
+replace the existing queries with some of our own:
+
+#+begin_src sql
+-- :name save-message! :! :n
+-- :doc creates a new message
+INSERT INTO guestbook
+(name, message)
+VALUES (:name, :message)
+
+-- :name get-messages :? :*
+-- :doc selects all available messages
+SELECT * FROM guestbook
+#+end_src
+
+Now that our model is all set up, let's reload the application, and test
+our queries in the REPL:
+
+#+begin_src clojure
+(reset)
+
+(def query-fn (:db.sql/query-fn state/system))
+
+(query-fn :save-message! {:name      "m1"
+                          :message   "hello world"})
+;; => 1
+
+(query-fn :get-messages {})
+;; => [{:id 1, :name "m1", :message "hello world", :timestamp 1636480432353}]
+#+end_src
+
+In this example, the newly defined =query-fn= function allows you to
+execute the SQL functions you defined in =queries.sql=. It achieves this
+using the =:db.sql/query-fn= component that comes with kit-sql (a
+dependency of kit/sqlite you installed).
+
+As you can see, =query-fn= takes two arguments: name of the SQL query
+function to call, and a map of parameters required by that function.
+
+For more information on how components like =:db.sql/query-fn= work, see
+[[/docs/integrant.html#accessing_components][Accessing Components]].
+
+*** Exposing Database Queries in the Router Component
+:PROPERTIES:
+:CUSTOM_ID: exposing-database-queries-in-the-router-component
+:END:
+Now that we've added the queries, we'll need to update
+=resources/system.edn= to make these queries available in the page
+router component. To do this, add a =:query-fn= key in the component
+definition as follows:
+
+#+begin_src clojure
+:reitit.routes/pages
+{:base-path "",
+ :query-fn #ig/ref :db.sql/query-fn
+ :env      #ig/ref :system/env}
+#+end_src
+
+The key references the =:db.sql/query-fn= component which is responsible
+for instantiating query functions using the template found in the
+=resources/sql/queries.sql= file:
+
+#+begin_src clojure
+:db.sql/query-fn
+{:conn #ig/ref :db.sql/connection,
+ :options {},
+ :filename "sql/queries.sql"}
+#+end_src
+
+Like in the REPL example towards the end of the
+[[file:accessing_the_database][Accessing the Database]] section, the
+=:db.sql/query-fn= component comes from kit-sql. Unlike in that example:
+
+- we pass specific database connection information
+- we only make available the query functions from one specific file.
+
+For more information on how components like =:db.sql/query-fn= work, see
+[[/docs/integrant.html#accessing_components][Accessing Components]].
+
+*** Creating a controller for the guestbook
+:PROPERTIES:
+:CUSTOM_ID: creating-a-controller-for-the-guestbook
+:END:
+We'll create a new controller that will be responsible for saving new
+messages in the database. Let's create a new namespace called
+=kit.guestbook.web.controllers.guestbook=, and add the following content
+to it:
+
+#+begin_src clojure
+(ns kit.guestbook.web.controllers.guestbook
+  (:require
+   [clojure.tools.logging :as log]
+   [kit.guestbook.web.routes.utils :as utils]
+   [ring.util.http-response :as http-response]))
+
+(defn save-message!
+  [{{:strs [name message]} :form-params :as request}]
+  (log/debug "saving message" name message)
+  (let [{:keys [query-fn]} (utils/route-data request)]
+    (try
+      (if (or (empty? name) (empty? message))
+        (cond-> (http-response/found "/")
+          (empty? name)
+          (assoc-in [:flash :errors :name] "name is required")
+          (empty? message)
+          (assoc-in [:flash :errors :message] "message is required"))
+        (do
+          (query-fn :save-message! {:name name :message message})
+          (http-response/found "/")))
+      (catch Exception e
+        (log/error e "failed to save message!")
+        (-> (http-response/found "/")
+            (assoc :flash {:errors {:unknown (.getMessage e)}}))))))
+#+end_src
+
+As you can see, the namespace contains a =save-message!= function that
+executes the query to add a new message to the guestbook table. The
+query is accessed from the request route data using the
+=kit.guestbook.web.routes.utils/route-data= function. The function
+returns a map containing the =query-fn= key that in turn contains a map
+of the query functions. The names of these functions are inferred from
+the =-- :name= comments in the SQL templates found in the
+=resources/sq/queries.sql= file.
+
+Our function will grab the =form-params= key from the request that
+contains the form data and attempt to save the message in the database.
+The controller will redirect back to the home page, and if set any
+errors as a flash session on the response.
+
+*** Creating Pages and Handling Form Input
+:PROPERTIES:
+:CUSTOM_ID: creating-pages-and-handling-form-input
+:END:
+The routes for the HTML pages are defined in the
+=kit.guestbook.web.routes.pages= namespace. Let's reference our
+=kit.guestbook.web.controllers.guestbook= and
+=kit.guestbook.web.routes.utils= namespaces in the namespace
+declaration.
+
+#+begin_src clojure
+(ns kit.guestbook.web.routes.pages
+  (:require
+    ...
+    [kit.guestbook.web.routes.utils :as utils]
+    [kit.guestbook.web.controllers.guestbook :as guestbook]))
+#+end_src
+
+We can now add the logic for rendering the messages from the database by
+updating the =home-page= handler function to look as follows:
+
+#+begin_src clojure
+(defn home [{:keys [flash] :as request}]
+  (let [{:keys [query-fn]} (utils/route-data request)]
+    (layout/render request "home.html" {:messages (query-fn :get-messages {})
+                                        :errors (:errors flash)})))
+#+end_src
+
+The function now renders the =home.html= template, and passes into it
+the messages from the database (using the =:messages= key), and any
+errors (using the =:errors= key).
+
+Finally, we'll add the =/save-message= route in the =page-routes=
+function. This route will pass the request to the
+=guestbook/save-message!= function we defined above when the form post
+happens:
+
+#+begin_src clojure
+(defn page-routes [_opts]
+  [["/" {:get home}]
+   ["/save-message" {:post guestbook/save-message!}]])
+#+end_src
+
+Now that we have our controllers set up, let's open =home.html= template
+located in the =resources/html= directory. Currently, it simply renders
+a static page. We'll update our =content= div to iterate over the
+messages and print each one in a list:
+
+#+begin_src xml
+<div class="content container">
+  <div class="columns">
+    <div class="column">
+      <h3>Messages</h3>
+      <ul class="messages">
+        {% for item in messages %}
+        <li>
+          <time>{{item.timestamp}}</time>
+          <p>{{item.message}}</p>
+          <p> - {{item.name}}</p>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+#+end_src
+
+As you can see above, we use a =for= iterator to walk through the
+messages. Since each message is a map with the message, name, and
+timestamp keys, we can access them by name.
+
+Finally, we'll create a form to allow users to submit their messages.
+We'll populate the name and message values if they're supplied and
+render any errors associated with them. Note that the forms also uses
+the =csrf-field= tag that's required for cross-site request forgery
+protection.
+
+#+begin_src xml
+<div class="columns">
+  <div class="column">
+      {% if errors.unknown %}
+      <div class="notification is-danger">{{errors.unknown}}</div>
+      {% endif %}
+      <form method="POST" action="/save-message">
+          {% csrf-field %}
+          <p>
+              <label>
+              Name:
+              <input class="input" type="text" name="name" value="{{name}}" />
+              </label>
+          </p>
+          {% if errors.name %}
+          <div class="notification is-danger">{{errors.name}}</div>
+          {% endif %}
+          <p>
+              <label>
+              Message:
+              <textarea class="textarea" name="message">{{message}}</textarea>
+              </label>
+          </p>
+          {% if errors.message %}
+          <div class="notification is-danger">{{errors.message}}</div>
+          {% endif %}
+          <input type="submit" class="button is-primary is-outlined has-text-dark" value="comment" />
+      </form>
+  </div>
+</div>
+#+end_src
+
+Our final =content= div should look as follows:
+
+#+begin_src xml
+<div class="content container">
+  <div class="columns">
+      <div class="column">
+          <h3>Messages</h3>
+          <ul class="messages">
+              {% for item in messages %}
+              <li>
+                  <time>{{item.timestamp}}</time>
+                  <p>{{item.message}}</p>
+                  <p> - {{item.name}}</p>
+              </li>
+              {% endfor %}
+          </ul>
+      </div>
+  </div>
+  <div class="columns">
+      <div class="column">
+          {% if errors.unknown %}
+          <div class="notification is-danger">{{errors.unknown}}</div>
+          {% endif %}
+          <form method="POST" action="/save-message">
+              {% csrf-field %}
+              <p>
+                  <label>
+                  Name:
+                  <input class="input" type="text" name="name" value="{{name}}" />
+                  </label>
+              </p>
+              {% if errors.name %}
+              <div class="notification is-danger">{{errors.name}}</div>
+              {% endif %}
+              <p>
+                  <label>
+                  Message:
+                  <textarea class="textarea" name="message">{{message}}</textarea>
+                  </label>
+              </p>
+              {% if errors.message %}
+              <div class="notification is-danger">{{errors.message}}</div>
+              {% endif %}
+              <input type="submit" class="button is-primary is-outlined has-text-dark" value="comment" />
+          </form>
+      </div>
+  </div>
+</div>
+#+end_src
+
+Our site should now be functional, but it looks a little bland. Let's
+add a bit of style to it using [[https://bulma.io/][Bulma CSS
+framework]]. We'll add the following reference in the =head= of our
+template:
+
+#+begin_src xml
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+#+end_src
+
+Finally, we'll update the =screen.css= file located in the
+=resources/public/css= folder to format our form nicer:
+
+#+begin_example
+ul {
+    list-style: none;
+}
+
+ul.messages li {
+    position: relative;
+    font-size: 16px;
+    padding: 5px;
+    border-bottom: 1px dotted #ccc;
+}
+
+li:last-child {
+    border-bottom: none;
+}
+
+li time {
+    font-size: 12px;
+    padding-bottom: 20px;
+}
+
+form, .error {
+    padding: 30px;
+    margin-bottom: 50px;
+    position: relative;
+}
+#+end_example
+
+When we reload the page in the browser we should be greeted by the
+guestbook page. We can test that everything is working as expected by
+adding a comment in our comment form.
+
+To learn more about HTML templating options you can use with Kit, see
+[[/docs/html_templating.html][HTML Templating]].
+
+** Adding some tests
+:PROPERTIES:
+:CUSTOM_ID: adding-some-tests
+:END:
+Tests are found under the =test= source path.
+
+We can now run =clj -M:test= in the terminal to see that our database
+interaction works as expected.
+
+** Packaging the application
+:PROPERTIES:
+:CUSTOM_ID: packaging-the-application
+:END:
+You can package your application for standalone deployment by running
+the following command:
+
+clj -Sforce -T:build all
+
+This will create a runnable jar that you can run using the following
+commands:
+
+#+begin_example
+export JDBC_URL="jdbc:sqlite:guestbook_dev.db"
+java -jar target/guestbook-standalone.jar
+#+end_example
+
+Note that we have to supply the =JDBC_URL= environment variable when
+running as a jar, as it's not packaged with the application.
+
+--------------
+
+Complete source listing for the tutorial is available
+[[https://github.com/kit-clj/examples/tree/master/guestbook][here]].

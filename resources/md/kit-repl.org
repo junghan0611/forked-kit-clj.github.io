@@ -1,0 +1,18 @@
+** Integrant components
+:PROPERTIES:
+:CUSTOM_ID: integrant-components
+:END:
+*** :repl/server
+:PROPERTIES:
+:CUSTOM_ID: replserver
+:END:
+Implements a simple socket REPL server.
+
+Full configuration options look like:
+
+#+begin_src clojure
+:repl/server
+{:address "127.0.0.1"
+ :port    7000
+ :name    "main"}
+#+end_src

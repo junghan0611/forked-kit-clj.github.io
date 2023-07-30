@@ -1,0 +1,11 @@
+The assets for the application are located under the =resources= folder.
+Assets include any non-source files that you may wish to include in the
+application. These may be database migration files, SQL query files, and
+so on.
+
+By default, the =resources/public= folder is reserved for assets that
+will be served directly by the HTTP server. This is where you would
+place assets such as images and CSS. This path can be customized should
+you wish to place publicly available assets under a different directory.
+This is configured in your =system.edn= under the =:handler/ring=
+component's =:site-defaults-config= key.

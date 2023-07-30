@@ -1,0 +1,22 @@
+** Integrant components
+:PROPERTIES:
+:CUSTOM_ID: integrant-components
+:END:
+*** :cache/redis
+:PROPERTIES:
+:CUSTOM_ID: cacheredis
+:END:
+This component connects to a Redis cache cluster using
+[[https://github.com/ptaoussanis/carmine][carmine]] and provides a
+[[https://github.com/clojure/core.cache][clojure.core.cache]] interface
+over it.
+
+Sample configuration:
+
+#+begin_src clojure
+{:ttl  3600
+ :conn {:pool {}
+        :spec #profile {:dev  {:host "localhost" :port 6379}
+                        :test {:host "localhost" :port 6379}
+                        :prod {:uri #env REDIS_URI}}}}
+#+end_src

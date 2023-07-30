@@ -1,0 +1,8 @@
+*** Community
+:PROPERTIES:
+:CUSTOM_ID: community
+:END:
+Kit Community is found on the official
+[[https://clojurians.slack.com/][Clojurians Slack]] at the * #kit-clj
+channel. It's a great place to get help if you're stuck, provide
+feedback, or share suggestions.

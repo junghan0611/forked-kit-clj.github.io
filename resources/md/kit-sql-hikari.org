@@ -1,0 +1,30 @@
+** Integrant components
+:PROPERTIES:
+:CUSTOM_ID: integrant-components
+:END:
+*** :db.sql/hikari-connection
+:PROPERTIES:
+:CUSTOM_ID: db.sqlhikari-connection
+:END:
+This component uses [[https://github.com/tomekw/hikari-cp][hikari-cp]]
+and [[https://github.com/seancorfield/next-jdbc][next-jdbc]] to create a
+pooled connection to your database.
+
+Sample configuration:
+
+#+begin_src clojure
+:db.sql/connection 
+#profile {:prod {:jdbc-url      #env JDBC_URL
+                 :auto-commit        true
+                 :read-only          false
+                 :connection-timeout 30000
+                 :validation-timeout 5000
+                 :idle-timeout       600000
+                 :max-lifetime       1800000
+                 :minimum-idle       10
+                 :maximum-pool-size  10
+                 :pool-name          "pool-name"
+                 :username           "username"
+                 :password           "password"
+                 :driver-class-name  "com.mysql.jdbc.Driver"}}
+#+end_src

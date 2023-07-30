@@ -1,0 +1,6 @@
+Below are a few sample applications built using Kit:
+
+- [[https://github.com/kit-clj/kit-examples/tree/master/guestbook][guestbook -
+  complete source listing for the guestbook example]]
+- [[https://github.com/kit-clj/kit-examples/tree/master/kit-musicbrainz][kit-musicbrainz -
+  a non-trivial API demo for the MusicBrainz dataset]]

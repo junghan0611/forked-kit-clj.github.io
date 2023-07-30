@@ -1,0 +1,66 @@
+** Integrant components
+:PROPERTIES:
+:CUSTOM_ID: integrant-components
+:END:
+*** :metrics/prometheus
+:PROPERTIES:
+:CUSTOM_ID: metricsprometheus
+:END:
+The component initializes an in-memory
+[[https://prometheus.io/][prometheus]] registry per instance. The
+following are the default options:
+
+#+begin_src clojure
+:metrics/prometheus
+{:jvm?        true
+ :fn?         true
+ :ring?       true
+ :definitions []}
+#+end_src
+
+You can define specific functions to be benchmarked in the definitions
+key. Here is a sample definition:
+
+#+begin_src clojure
+{:type   :histogram
+ :metric :app/duration-seconds
+ :opts   {}}
+#+end_src
+
+The types available are
+
+- =:histogram=
+- =:gauge=
+- =:counter=
+- =:summary=
+
+See [[https://github.com/clj-commons/iapetos][iapetos]] documentation
+for more information,
+
+** Implementing Ring Metrics
+:PROPERTIES:
+:CUSTOM_ID: implementing-ring-metrics
+:END:
+In addition to initializing the registry in the configuration, for your
+ring HTTP requests to be measured you will need to wrap in the iapetos
+ring middleware along with your configuration.
+
+For example:
+
+=system.edn=
+
+#+begin_src clojure
+:handler/ring
+{
+ ;; ... other stuff
+ :metrics #ig/ref :metrics/prometheus}
+#+end_src
+
+Wherever your middleware is chained at the top level
+
+#+begin_src clojure
+(require '[iapetos.collector.ring :as prometheus-ring])
+
+;; ... middleware wrapping
+(prometheus-ring/wrap-metrics metrics)
+#+end_src

@@ -1,0 +1,54 @@
+Out of the box Kit supports the [[https://undertow.io/][Undertow]] web
+server via the
+[[https://github.com/luminus-framework/ring-undertow-adapter][ring-undertow-adapter]]
+
+*** Undertow Configuration
+:PROPERTIES:
+:CUSTOM_ID: undertow-configuration
+:END:
+Undertow allows setting the number of worker and IO threads using the
+=:worker-threads= and the =:io-threads= keys respectively. For example,
+we could update the default configuration in the =system.edn= as
+follows:
+
+#+begin_src clojure
+:server/undertow
+{:port #long #or [#env PORT 3000]
+ :handler #ig/ref :handler/ring
+ :worker-threads 200
+ :io-threads 4}
+#+end_src
+
+If you want to do a custom configuration that includes calculating the
+=io-threads= at runtime, you can override the default =ig/init-key= for
+=server/undertow=. This is the definition in =kit.edge.server.undertow=
+
+#+begin_src clojure
+(defmethod ig/prep-key :server/undertow
+  [_ config]
+  (merge {:port 3000
+          :host "0.0.0.0"}
+         config))
+#+end_src
+
+For example,
+
+#+begin_src clojure
+(defmethod ig/prep-key :server/undertow
+  [_ config]
+  (merge {:port 3000
+          :host "0.0.0.0"
+          :io-threads (* 2 (.availableProcessors (Runtime/getRuntime)))}
+         config))
+#+end_src
+
+For a full listing of all configuration options, review the
+[[https://github.com/luminus-framework/ring-undertow-adapter][ring-undertow-adapter
+documentation]].
+
+Undertow uses separate thread pools for managing the IO and the worker
+threads. The =:dispatch?= flag is used to decide whether the request
+should be dispatched by the IO thread to a separate worker thread. Since
+dispatching the request to a worker carries overhead, it may be more
+performant to handle some requests, such as hardcoded text responses,
+directly in the IO thread.

@@ -1,0 +1,17 @@
+** Integrant components
+:PROPERTIES:
+:CUSTOM_ID: integrant-components
+:END:
+*** :db.xtdb/node
+:PROPERTIES:
+:CUSTOM_ID: db.xtdbnode
+:END:
+Implements a [[https://xtdb.com/][XTDB]] server node.
+
+#+begin_src clojure
+:db.xtdb/node
+{}
+#+end_src
+
+Please review the [[https://docs.xtdb.com/guides/quickstart/][XTDB
+quickstart]] for more usage information.

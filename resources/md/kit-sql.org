@@ -1,0 +1,4 @@
+This library serves as a wrapper that imports
+[[/docs/kit-sql-conman.html][kit-sql-conman]] and
+[[/docs/kit-sql-migratus.html][kit-sql-migratus]]. It is used only for
+compatibility purposes.

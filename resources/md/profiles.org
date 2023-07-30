@@ -1,0 +1,87 @@
+** Profiles
+:PROPERTIES:
+:CUSTOM_ID: profiles
+:END:
+Profiles are clj-new template arguments. They are helpful when you are
+starting a new project and know ahead of time what functionality you
+will need. In such cases, you can use profiles to set up a new Kit
+project without having to manually add libraries and wire them together.
+
+Unlike [[/docs/modules.html][modules]], profiles are tied to clj-new,
+the project generation tool. You can only use them when creating a
+project.
+
+Running
+=clojure -Tnew create :template io.github.kit-clj :name yourname/app=
+will create an application using the default profile template. However,
+if you would like to attach further functionality to your template you
+can append profile hints for the extended functionality.
+
+Default libs included with no profile specified:
+
+- =kit-core=
+- =kit-undertow=
+
+Additional profiles:
+
+- =+xtdb= - Adds the =kit-xtdb= lib
+- =+hato= - Adds the =kit-hato= lib
+- =+metrics= - Adds the =kit-metrics= lib
+- =+nrepl= - Adds the =kit-nrepl= lib, removes the =kit-repl= lib. Note
+  that you do not need this profile to use nREPL during development.
+- =+quartz= - Adds the =kit-quartz= lib
+- =+redis= - Adds the =kit-redis= lib
+- =+selmer= - Adds the =kit-selmer= lib
+- =+socket-repl= - Adds the =kit-repl= lib
+- =+sql= - Adds the =kit-sql= and =kit-postgres= libs
+- =+full= - Adds the libs =kit-xtdb=, =kit-hato=, =kit-metrics=,
+  =kit-quartz=, =kit-redis=, =kit-repl=, =kit-selmer=, and =kit-sql=
+
+To add a profile, pass it as an argument after your application name,
+e.g.:
+
+#+begin_example
+clojure -Tnew create :template io.github.kit-clj :name yourname/app :args '[+selmer]'
+#+end_example
+
+You can also mix multiple profiles when creating the application, e.g.:
+
+#+begin_example
+clojure -Tnew create :template io.github.kit-clj :name yourname/app :args '[+selmer +xtdb]'
+#+end_example
+
+*** Libraries
+:PROPERTIES:
+:CUSTOM_ID: libraries
+:END:
+- =kit-core= - Basic utility functions used by some other libs
+- =kit-xtdb= - Simple binding to connect to a
+  [[https://xtdb.com/][XTDB]] database node
+- =kit-hato= - HTTP client using
+  [[https://github.com/gnarroway/hato][hato]]
+- =kit-metrics= - Configurable metrics using
+  [[https://github.com/clj-commons/iapetos][iapetos]]
+- =kit-nrepl= - [[https://github.com/nrepl/nrepl][nREPL]] component.
+  Note that you do not need this library to use nREPL during
+  development.
+- =kit-quartz= - Scheduler using
+  [[https://github.com/troy-west/cronut][cronut]] as an integrant
+  binding for [[http://www.quartz-scheduler.org/][quartz]]. Exposes the
+  =cronut= API, simply some extensions for =aero= and utilities
+- =kit-redis= - Extension of
+  [[https://github.com/clojure/core.cache][core.cache]] for Redis via
+  [[https://github.com/ptaoussanis/carmine][carmine]]
+- =kit-repl= - Socket REPL integrant binding
+- =kit-selmer= - Templating configuration with
+  [[https://github.com/yogthos/Selmer][selmer]]
+- =kit-sql= - Generic SQL integrant binding. Uses
+  [[https://github.com/luminus-framework/conman][conman]],
+  [[https://github.com/seancorfield/next-jdbc][next.jdbc]],
+  [[https://www.hugsql.org/][hugsql]], and
+  [[https://github.com/yogthos/migratus][migratus]] directly, or
+  implicitly. By default, imports =kit-postgres= lib which supports
+  Postgresql
+- =kit-postgres= - Lib with data bindings and utilities for working with
+  Postgres
+- =kit-undertow= - Server binding via
+  [[https://github.com/luminus-framework/luminus-undertow][luminus-undertow]]

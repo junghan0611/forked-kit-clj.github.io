@@ -1,0 +1,44 @@
+* How you can help
+:PROPERTIES:
+:CUSTOM_ID: how-you-can-help
+:END:
+Kit is an open source project and there are many ways to get involved.
+
+** Report Bugs
+:PROPERTIES:
+:CUSTOM_ID: report-bugs
+:END:
+The project is [[https://github.com/kit-clj/kit][hosted on GitHub]]. If
+you have feature requests or would like to submit improvements, don't
+hesitate to open an issue or submit a pull request.
+
+** Help Improve Documentation
+:PROPERTIES:
+:CUSTOM_ID: help-improve-documentation
+:END:
+The source for this site along with the associated documentation is
+hosted on [[https://github.com/kit-clj/kit-clj.github.io][GitHub]].
+
+If you wish to update an existing documentation page, simply edit the
+Markdown file for the page
+[[https://github.com/kit-clj/kit-clj.github.io/tree/master/resources/md][here]].
+
+To add a new topic simply create a new Markdown file under
+[[https://github.com/kit-clj/kit-clj.github.io/tree/master/resources/md][resources/md]]
+directory, and update the list of topics
+[[https://github.com/kit-clj/kit-clj.github.io/blob/master/resources/docpages.edn][here]].
+
+** Support the Maintainers
+:PROPERTIES:
+:CUSTOM_ID: support-the-maintainers
+:END:
+The maintainers of Kit are:
+
+[[http://danboykis.com/][Dan Boykis]]
+
+[[https://nikperic.com/][Nik Peric]]. You can support Nik with a 'hi' on
+your communication channel of choice
+
+[[https://yogthos.net/][Dmitri Sotnikov]]. You can support Dmitri on
+[[https://github.com/sponsors/yogthos][GitHub]], your contribution will
+help cover development and maintenance costs for the project.
